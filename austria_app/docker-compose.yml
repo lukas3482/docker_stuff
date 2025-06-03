@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  austria-app-service:
+    container_name: austria-app-service
+    image: ghcr.io/lukas3482/austria_app_service:latest
+    hostname: austria_app_service
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_CONFIG_LOCATION=/config/application.properties
+      - TZ=Europe/Vienna
+    env_file:
+      - .env
+    volumes:
+      - ./config/application.properties:/config/application.properties:ro
+    extra_hosts:
+      - "ghcr.io:192.30.253.113"
+    networks: 
+      - productive_data     
+      - productive_web
+
+networks:
+  productive_data:
+    external: true
+  productive_web:
+    external: true

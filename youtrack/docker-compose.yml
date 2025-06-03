@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  youtrack:
+    container_name: youtrack
+    image: jetbrains/youtrack:latest
+    hostname: youtrack
+    restart: unless-stopped
+    networks:
+      - productive_web
+    volumes:
+      - /opt/docker/youtrack/data:/opt/youtrack/data
+      - /opt/docker/youtrack/conf:/opt/youtrack/conf:ro
+      - /opt/docker/youtrack/logs:/opt/youtrack/logs
+      - /opt/docker/youtrack/backups:/opt/youtrack/backups
+    environment:
+      - TZ=Europe/Vienna
+
+networks:
+  productive_web:
+    external: true

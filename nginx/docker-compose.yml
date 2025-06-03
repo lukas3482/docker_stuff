@@ -1,0 +1,32 @@
+version: '3.8'  # 3.8 ist die aktuellste und stabilste für docker-compose
+
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:stable
+    restart: unless-stopped
+    volumes:
+      - /opt/docker/nginx/config/:/etc/nginx/conf.d/:ro
+      - /opt/docker/nginx/var/www/:/var/www/:ro
+    networks:
+      - productive_web
+      - productive_data
+    ports:
+      - "80:80"
+      - "443:443"
+
+  php:
+    container_name: php-fpm
+    image: php:fpm-alpine
+    restart: unless-stopped
+    volumes:
+      - /opt/docker/nginx/var/www/:/var/www/:ro
+    networks:
+      - productive_web
+      - productive_data  
+
+networks:
+  productive_web:
+    external: true
+  productive_data:
+    external: true

@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  nexus:
+    container_name: nexus
+    image: sonatype/nexus3
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Vienna
+    volumes:
+      - /opt/docker/nexus/data:/nexus-data
+    networks:
+      - productive_web
+      - productive_data
+
+networks:
+  productive_web:
+    external: true
+  productive_data:
+    external: true
