@@ -1,101 +1,94 @@
-services:
-  jellyfin:
-    image: jellyfin/jellyfin:latest
-    container_name: jellyfin
-    restart: unless-stopped
-    ports:
-      - 8096:8096
-    volumes:
-      - ./config/jellyfin:/config
-      - ./cache/jellyfin:/cache
-      - ./media/movies:/data/movies
-      - ./media/tv:/data/tv
-    environment:
-      - TZ=Europe/Berlin
-    networks:
-      - media_network
+version: '3.8'
 
+services:
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
-    restart: unless-stopped
     ports:
       - 7878:7878
     volumes:
       - ./config/radarr:/config
-      - ./media/movies:/movies
-      - ./downloads:/downloads
+      - /media:/data
     environment:
+      - TZ=Europe/Berlin
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Berlin
-    networks:
-      - media_network
+    restart: unless-stopped
 
-  qbittorrentvpn:
-    image: binhex/arch-qbittorrentvpn
-    container_name: qbittorrentvpn
-    privileged: true
-    cap_add:
-      - NET_ADMIN
-    ports:
-      - 8080:8080
-      - 8999:8999
-      - 8999:8999/udp
-    environment:
-      - VPN_ENABLED=yes
-      - VPN_PROV=custom
-      - VPN_CLIENT=openvpn
-      - STRICT_PORT_FORWARD=yes
-      - ENABLE_PRIVOXY=no
-      - LAN_NETWORK=192.168.178.0/24
-      - NAME_SERVERS=1.1.1.1,8.8.8.8
-      - TZ=Europe/Vienna
-      - PUID=1000
-      - PGID=1000
-      - WEBUI_USERNAME=admin
-      - WEBUI_PASSWORD=adminadmin
-    volumes:
-      - ./config/qbittorrent:/config
-      - ./downloads:/downloads
-      - ./openvpn:/config/openvpn
-    restart: unless-stopped
-    networks:
-      - media_network
-      
-  jackett:
-    image: lscr.io/linuxserver/jackett:latest
-    container_name: jackett
-    restart: unless-stopped
-    ports:
-      - 9117:9117
-    volumes:
-      - ./config/jackett:/config
-      - ./downloads:/downloads
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Berlin
-    networks:
-      - media_network
-      
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
-    restart: unless-stopped
     ports:
       - 8989:8989
     volumes:
       - ./config/sonarr:/config
-      - ./media/tv:/tv
-      - ./downloads:/downloads
+      - /media:/data
     environment:
+      - TZ=Europe/Berlin
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Berlin
-    networks:
-      - media_network
+    restart: unless-stopped
 
-networks:
-  media_network:
-    driver: bridge
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd
+    container_name: sabnzbd
+    ports:
+      - 8085:8080
+    volumes:
+      - ./config/sabnzbd:/config
+      - /media/downloads:/data/downloads
+    environment:
+      - TZ=Europe/Berlin
+      - PUID=1000
+      - PGID=1000
+    restart: unless-stopped
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    ports:
+      - 5055:5055
+    environment:
+      - TZ=Europe/Berlin
+      - LOG_LEVEL=debug
+    volumes:
+      - ./config/jellyseerr:/app/config
+    restart: unless-stopped
+
+  tdarr:
+    image: ghcr.io/haveagitgat/tdarr:latest
+    container_name: tdarr
+    ports:
+      - "8265:8265"
+      - "8266:8266"
+    environment:
+      - TZ=Europe/Berlin
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./config/tdarr/server:/app/server
+      - ./config/tdarr/configs:/app/configs
+      - ./config/tdarr/logs:/app/logs
+      - /media:/data
+      - /opt/docker/media-docker/temp/tdarr-cache:/temp
+    restart: unless-stopped
+
+  tdarr-node:
+    image: ghcr.io/haveagitgat/tdarr_node:latest
+    container_name: tdarr-node
+    depends_on:
+      - tdarr
+    environment:
+      - TZ=Europe/Berlin
+      - serverIP=tdarr
+      - serverPort=8266
+      - nodeName=Node-1
+      - nodeID=CPU-Node-1
+    volumes:
+      - ./config/tdarr/configs:/app/configs
+      - ./config/tdarr/logs:/app/logs
+      - /media:/data
+      - /opt/docker/media-docker/temp/tdarr-cache:/temp
+    devices:
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
