@@ -1,0 +1,39 @@
+services:
+  hakatime:
+    image: mujx/hakatime:latest
+    container_name: hakatime
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      # --- DB ---
+      HAKA_DB_HOST: postgres
+      HAKA_DB_PORT: 5432
+      HAKA_DB_NAME: ${HAKA_DB_NAME:-hakatime}
+      HAKA_DB_USER: ${HAKA_DB_USER:-hakatime}
+      HAKA_DB_PASS: ${HAKA_DB_PASS:-change-me}
+      # --- Server ---
+      HAKA_PORT: 8080
+      HAKA_BADGE_URL: ${HAKA_BADGE_URL:-http://localhost:8080}
+      HAKA_SHIELDS_IO_URL: "https://img.shields.io"
+      HAKA_ENABLE_REGISTRATION: "false"
+      HAKA_SESSION_EXPIRY: "24"
+      HAKA_LOG_LEVEL: "info"
+      HAKA_ENV: "prod"
+      HAKA_HTTP_LOG: "true"
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: hakatime_postgres
+    environment:
+      POSTGRES_DB: ${HAKA_DB_NAME:-hakatime}
+      POSTGRES_USER: ${HAKA_DB_USER:-hakatime}
+      POSTGRES_PASSWORD: ${HAKA_DB_PASS:-change-me}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  db_data:
